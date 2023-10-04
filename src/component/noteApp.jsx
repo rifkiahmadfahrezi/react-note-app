@@ -17,7 +17,8 @@ export default class NoteApp extends React.Component
 			notes: data,
 			modal: false,
 			modalType: "form",
-			selectedNote: []
+			selectedNote: [],
+			tempNotes: []
 		}
 
 		this.onDeleteHandler = this.onDeleteHandler.bind(this)
@@ -69,16 +70,19 @@ export default class NoteApp extends React.Component
 	
 	onAddNewNoteHandler({ title, body,archived }) {
 	   const date = new Date()
-	   this.state.notes = data.push({
-	            id: +new Date(),
-			    title,
-			    body,
-			    archived,
-			    createdAt: `${date.toLocaleDateString("id-ID", {weekday: "long"})}, ${date.getDate()}-${date.getMonth()}-${date.getFullYear()} `
-	         })
-	   this.setState(() => {
+	  
+	   this.setState((prevstate) => {
 	     return {
-	     	notes: data
+	     	notes: [
+	     		...prevstate.notes, 
+	     		{
+	     			id: +new Date(),
+				    title,
+				    body,
+				    archived,
+				    createdAt: `${date.toLocaleDateString("id-ID", {weekday: "long"})}, ${date.getDate()} ${date.toLocaleDateString("id-ID", {month: "long"})} ${date.getFullYear()} `
+	     		}
+	     	]
 	     }
 	   })
 	 }
@@ -86,22 +90,29 @@ export default class NoteApp extends React.Component
 	 searchHandler(event){
 		event.preventDefault()
 
+		const keyword = this.state.keyword.toLowerCase()
 
 		const filtered = this.state.notes.filter(note => {
-			if(note.title == this.state.keyword.toLowerCase()){
+			if(note.title.toLowerCase().search(keyword) >= 0){
 				return note
 			}
 		})
 
+		if (this.state.notes.length <= 0){
+			alert("Belum ada data yang bisa ditampilkan! harap menambah data terlebih dahulu")
+			return false
+		}
 		if (filtered.length <= 0){
 			alert("data tidak ditemukan!,harap masukkan judul catatan dengan benar!")
 			return false
+
 		}
+		
 
-
-		this.setState(() => {
+		this.setState((prevState) => {
 			return {
-				notes: filtered,
+				tempNotes: prevState.notes,
+				notes: filtered
 			}
 		})
 
@@ -113,17 +124,21 @@ export default class NoteApp extends React.Component
 
 	inputHandler(event){
 		const keyword = event.target.value.toLowerCase()
-		let result = []
-		if (keyword === '' || keyword === null || keyword === undefined){
-			result = []
-			this.state.notes = data
-			this.setState(() => {
+		if (keyword == ""){
+			if(this.state.tempNotes.length <= 0){
+				this.setState(() => {
+					return {
+						notes: this.state.notes
+					}
+				})
+			}else{
+				this.setState(() => {
 				return {
-					notes: data
+					notes: this.state.tempNotes
 				}
 			})
+			}
 		}
-
 	}
 
 	noteModalHandler(event){
@@ -132,9 +147,6 @@ export default class NoteApp extends React.Component
 			return false
 		}
 		this.modalToggleHandler()
-
-
-
 
 		const note = this.state.notes.filter((note) => {
 			if(note.id == id){

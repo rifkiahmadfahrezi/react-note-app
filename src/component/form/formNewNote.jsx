@@ -33,7 +33,7 @@ export default class FormNewNote extends React.Component{
 
 	   this.setState(() => {
 	     return {
-	       title: event.target.value.toLowerCase(),
+	       title: event.target.value,
 	     }
 	   })
 	 }
